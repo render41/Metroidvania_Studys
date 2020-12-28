@@ -8,6 +8,8 @@ public class Player : MonoBehaviour
     private Rigidbody2D rb;
     private Animator anim;
 
+    private int health = 6;
+
     //Movement
     [SerializeField] [Range(1, 5)] private float speed = 1.0f;
 
@@ -21,6 +23,7 @@ public class Player : MonoBehaviour
     //Attack
     private Transform pointAttack = default;
     private bool isAtk = false;
+    [SerializeField] private LayerMask layerEnemy = default;
     [SerializeField] [Range(0.1f, 0.3f)] private float radius = 0.0f;
     #endregion
 
@@ -113,20 +116,44 @@ public class Player : MonoBehaviour
         {
             this.isAtk = true;
             this.anim.SetInteger("transition", 3);
-            var hit = Physics2D.OverlapCircle(this.pointAttack.position, this.radius);
+            var hit = Physics2D.OverlapCircle(this.pointAttack.position, this.radius, this.layerEnemy);
 
             if (hit != null)
             {
-                Debug.Log(hit.name);
+                hit.GetComponent<Slime>().OnHit();
             }
 
             StartCoroutine(StartAttack());
         }
     }
 
-    IEnumerator StartAttack(){
-        yield  return new WaitForSeconds(0.308f);
+    IEnumerator StartAttack()
+    {
+        yield return new WaitForSeconds(0.308f);
         this.isAtk = false;
+    }
+    #endregion
+
+    #region On Hit
+    public void OnHit()
+    {
+        this.anim.SetTrigger("hit");
+        this.health--;
+        if (this.health <= 0)
+        {
+            this.anim.SetTrigger("dead");
+            this.speed = 0.0f;
+        }
+    }
+    #endregion
+
+    #region On Trigger Enter 2D
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.gameObject.layer == 6)
+        {
+            OnHit();
+        }
     }
     #endregion
 
