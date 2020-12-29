@@ -23,6 +23,8 @@ public class Player : MonoBehaviour
     //Attack
     private Transform pointAttack = default;
     private bool isAtk = false;
+    private bool recovery = false;
+    private float recoveryCount = 2.0f;
     [SerializeField] private LayerMask layerEnemy = default;
     [SerializeField] [Range(0.1f, 0.3f)] private float radius = 0.0f;
     #endregion
@@ -135,12 +137,21 @@ public class Player : MonoBehaviour
     #endregion
 
     #region On Hit
+    
     public void OnHit()
     {
-        this.anim.SetTrigger("hit");
-        this.health--;
-        if (this.health <= 0)
+        this.recoveryCount += Time.deltaTime;
+        if (this.recoveryCount >= 2f)
         {
+            this.anim.SetTrigger("hit");
+            this.health--;
+
+            recoveryCount = 0.0f;
+        }
+
+        if (this.health <= 0 && !this.recovery)
+        {
+            this.recovery = true;
             this.anim.SetTrigger("dead");
             this.speed = 0.0f;
         }
